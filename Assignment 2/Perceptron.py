@@ -2,6 +2,7 @@ import numpy as np
 
 from iris_to_csv import iris_to_csv
 from load_iris import load_iris
+from the_graph import plot_iris_dataset
 
 
 class Perceptron:
@@ -65,13 +66,17 @@ def main():
     # Load the data (change the file name if necessary)
     x, y = load_iris()
 
-    # Instantiate the Perceptron
-    perceptron = Perceptron(learning_rate=0.1, max_iter=1000)
+    # Example: To classify only Setosa vs Versicolor
+    mask = (y == 0) | (y == 1)  # Filter Setosa (0) and Versicolor (1)
+    x_binary = x[mask]
+    y_binary = y[mask]
+    y_binary = np.where(y_binary == 0, -1, 1)  # Convert Setosa to -1, Versicolor to +1 for binary classification
 
-    # Train the Perceptron
-    perceptron.fit(x, y)
-    predictions = perceptron.predict(x)
-    print(predictions)
+    # Train your perceptron on the filtered dataset
+    perceptron = Perceptron(learning_rate=0.1, max_iter=1000)
+    perceptron.fit(x_binary, y_binary)
+    predictions = perceptron.predict(x_binary)
+    print("predictions: " , predictions)
 
     # Access the trained weights and bias
     w1 = perceptron.w  # Weight vector
@@ -80,7 +85,10 @@ def main():
     # Print results for Setosa vs Versicolor
     print("Final vector for Setosa vs Versicolor:")
     print(f"Weight vector: {w1}, Bias: {b1}")
-    # print(f"Number of mistakes: {mistakes1}")
+    # print(f"Number of Mistakes: {perceptron.mistake_count}")
+
+    # Call the plot function to visualize the dataset
+    plot_iris_dataset(x, y)
 
 if __name__ == "__main__":
     main()
