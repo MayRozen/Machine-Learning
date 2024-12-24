@@ -22,11 +22,11 @@ def plot_iris_dataset(x, y):
 
     # Scatter plot for each species with distinct modern colors
     ax.scatter(x[setosa_mask][:, 0], x[setosa_mask][:, 1],
-               color='#FF6F61', label='Setosa (0)', edgecolors='black', s=120, alpha=0.8)
+               color='#FF7518', label='Setosa (0)', edgecolors='black', s=120, alpha=0.8)
     ax.scatter(x[versicolor_mask][:, 0], x[versicolor_mask][:, 1],
-               color='#6B5B95', label='Versicolor (1)', edgecolors='black', s=120, alpha=0.8)
+               color='#0096FF', label='Versicolor (1)', edgecolors='black', s=120, alpha=0.8)
     ax.scatter(x[virginica_mask][:, 0], x[virginica_mask][:, 1],
-               color='#88B04B', label='Virginica (2)', edgecolors='black', s=120, alpha=0.8)
+               color='#6B5B95', label='Virginica (2)', edgecolors='black', s=120, alpha=0.8)
 
     # Customize the axes labels
     ax.set_xlabel("Feature 1 (Sepal Width)", fontsize=16, fontweight='bold', color='#333333')
