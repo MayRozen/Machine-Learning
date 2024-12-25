@@ -31,10 +31,10 @@ def load_iris():
         raise ValueError("No valid rows found in dataset after cleaning.")
 
     x_vector = np.array(x_valid)
-    print(x_vector)
 
     # Preparing labels for all three species (Setosa, Versicolor, Virginica)
     y = data_file.iloc[1:, -1].values  # Extract labels (species column)
+
     # Map the species to numerical values
     y_encoded = np.zeros_like(y, dtype=int)
     y_encoded[y == "Iris-setosa"] = 0  # Setosa -> 0
