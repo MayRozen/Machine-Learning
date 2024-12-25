@@ -69,11 +69,17 @@ def main():
     # Load the data (change the file name if necessary)
     x, y = load_iris()
 
-    # Example: To classify only Setosa vs Versicolor
+    # To classify only Setosa and Versicolor
     mask = (y == 0) | (y == 1)  # Filter Setosa (0) and Versicolor (1)
     x_binary = x[mask]
     y_binary = y[mask]
     y_binary = np.where(y_binary == 0, -1, 1)  # Convert Setosa to -1, Versicolor to +1 for binary classification
+
+    # # To classify only Setosa and Virginica
+    # mask = (y == 0) | (y == 2)  # Filter Setosa (0) and Virginica (-1)
+    # x_binary = x[mask]
+    # y_binary = y[mask]
+    # y_binary = np.where(y_binary == 0, -1, 1)  # Convert Setosa to -1, Virginica to +1 for binary classification
 
     # Train your perceptron on the filtered dataset
     perceptron = Perceptron(learning_rate=0.01, max_iter=10000)
