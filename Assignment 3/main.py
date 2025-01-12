@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy.spatial.distance import cdist
-from the_graph import generate_knn_plot
+from the_graph import generate_knn_plot, generate_merged_table
 
 
 def knn_classifier(training_data, training_labels, test_data, k, p):
@@ -82,9 +82,12 @@ if __name__ == "__main__":
     data_file = "average_results.csv"
 
     # Path to save the output graph
-    output_image_file = "results_plot.png"
+    output_image1_file = "results_graph.png" # First image (graph)
+    output_image2_file = "results_table.png" # Second image (table)
 
     # Call the function to generate the graph
-    generate_knn_plot(data_file, output_image_file)
+    generate_knn_plot(data_file, output_image1_file)
+    generate_merged_table(data_file, output_image2_file)
 
-    print(f"The graph has been saved to {output_image_file}")
+    print(f"The graph has been saved to {output_image1_file}")
+    print(f"The table has been saved to {output_image2_file}")
