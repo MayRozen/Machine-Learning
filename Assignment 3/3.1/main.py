@@ -7,7 +7,6 @@ from sklearn.metrics import accuracy_score
 from scipy.spatial.distance import cdist
 from the_graph import generate_knn_plot, generate_merged_table
 
-
 def knn_classifier(training_data, training_labels, test_data, k, p):
     """
     In-house k-Nearest Neighbors implementation.

@@ -1,0 +1,30 @@
+digraph {
+	bgcolor="#F5F5F5"
+	node [color="#9AD5CA" fontcolor="#40514E" fontname="Comic Sans MS" fontsize=12 style=filled]
+	2358834483984 [label="Feature 1
+Threshold 4.70" fillcolor="#FFD3B4"]
+	2358842257552 [label="Feature 0
+Threshold 2.50" fillcolor="#FFD3B4"]
+	2358834483984 -> 2358842257552
+	2358834656976 [label="Feature 1
+Threshold 4.40" fillcolor="#FFD3B4"]
+	2358842257552 -> 2358834656976
+	2358815726608 [label="Predict: 1" fillcolor="#FFDD67"]
+	2358834656976 -> 2358815726608
+	2358799122640 [label="Predict: 1" fillcolor="#FFDD67"]
+	2358834656976 -> 2358799122640
+	2358834457424 [label="Predict: 1" fillcolor="#FFDD67"]
+	2358842257552 -> 2358834457424
+	2358795355152 [label="Feature 1
+Threshold 5.10" fillcolor="#FFD3B4"]
+	2358834483984 -> 2358795355152
+	2358835341328 [label="Feature 1
+Threshold 4.90" fillcolor="#FFD3B4"]
+	2358795355152 -> 2358835341328
+	2358800165200 [label="Predict: 2" fillcolor="#FFDD67"]
+	2358835341328 -> 2358800165200
+	2358842289104 [label="Predict: 2" fillcolor="#FFDD67"]
+	2358835341328 -> 2358842289104
+	2358842185168 [label="Predict: 2" fillcolor="#FFDD67"]
+	2358795355152 -> 2358842185168
+}
