@@ -139,40 +139,55 @@ def binary_entropy_decision_tree(data, labels, max_depth, depth=0):
     root.right = binary_entropy_decision_tree(right_data, right_labels, max_depth, depth + 1)
     return root
 
-
-def run_decision_tree():
-    # Import required library for dataset
+def main():
+    """
+    Main function to run and compare the decision tree algorithms
+    using brute force and binary entropy methods on the Iris dataset.
+    """
+    # Import necessary library for dataset
     from sklearn.datasets import load_iris
+
+    # Load the Iris dataset
     iris = load_iris()
 
-    # Extract data and labels
+    # Filter the data for Versicolor (label 1) and Virginica (label 2)
     data = iris.data
     labels = iris.target
+    filtered_indices = (labels == 1) | (labels == 2)  # Keep only labels 1 and 2
+    data = data[filtered_indices]  # Filter data
+    labels = labels[filtered_indices]  # Filter labels
 
-    # Only select Versicolor (1) and Virginica (2)
-    filtered_indices = (labels == 1) | (labels == 2)
-    data = data[filtered_indices]
-    labels = labels[filtered_indices]
-
-    # Select only the second and third features (coordinates)
+    # Use only the second and third features, as required
     data = data[:, 1:3]
 
-    # Define max depth for both decision trees
+    # Define the maximum depth for the decision trees (k=3, as specified)
     max_depth = 3
 
-    # Run brute force decision tree
+    # Run the brute-force decision tree algorithm
+    print("Running Brute-Force Decision Tree...")
     brute_tree, brute_error = brute_force_decision_tree(data, labels, max_depth)
     print("Brute Force - Best Tree:", brute_tree)
-    print("Brute Force - Error:", brute_error)
+    print("Brute Force - Error Rate:", brute_error)
 
-    # Run binary entropy decision tree
+    # Run the binary entropy decision tree algorithm
+    print("\nRunning Binary Entropy Decision Tree...")
     entropy_tree = binary_entropy_decision_tree(data, labels, max_depth)
-    print("Binary Entropy - Decision Tree Built")
 
-    # Visualize Decision Tree using matplotlib
+    # Visualize the binary entropy decision tree (as an example)
+    print("Visualizing Binary Entropy Decision Tree...")
     try:
         visualize_tree_with_matplotlib(entropy_tree, filename="entropy_tree")
-        print("Binary Entropy Tree - visualization completed")
+        print("Binary Entropy Tree Visualization Saved as 'entropy_tree.png'")
     except Exception as e:
-        print("Error visualizing tree using matplotlib.")
+        print("Error visualizing tree with matplotlib.")
         print(e)
+
+    # Summary and comparison of results
+    print("\nSummary:")
+    print(f"Brute-Force Decision Tree Error Rate: {brute_error}")
+    print(f"Binary Entropy Decision Tree Built Successfully (visualization saved to 'entropy_tree.png').")
+
+
+# Run the main function if the script is executed directly
+if __name__ == "__main__":
+    main()
