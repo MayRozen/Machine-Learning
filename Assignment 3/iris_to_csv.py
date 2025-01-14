@@ -5,7 +5,7 @@ def iris_to_csv():
     column_names = ["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]
 
     # Load the Iris dataset from the .txt file
-    file_path = r"C:\Users\ASUS\Machine-Learning\Assignment 3\3.1\iris.txt"
+    file_path = r"C:\Users\ASUS\Machine-Learning\Assignment 3\iris.txt"
     iris_data = pd.read_csv(file_path, sep=" ", header=None, names=column_names, engine='python')
 
     # Drop any extra spaces or columns introduced due to spacing in the text
