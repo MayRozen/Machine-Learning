@@ -1,11 +1,12 @@
+import decision_tree
 from iris_to_csv import iris_to_csv
 from load_iris import load_iris
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy.spatial.distance import cdist
 from the_graph import generate_knn_plot, generate_merged_table
+from decision_tree import *
 
 
 def knn_classifier(training_data, training_labels, test_data, k, p):
@@ -91,3 +92,5 @@ if __name__ == "__main__":
 
     print(f"The graph has been saved to {output_image1_file}")
     print(f"The table has been saved to {output_image2_file}")
+
+    decision_tree.decision_tree_main()
