@@ -36,63 +36,80 @@ def error_rate(labels):
     return errors / len(labels)
 
 
-# Brute-Force Decision Tree
 def brute_force_decision_tree(data, labels, max_depth):
     """
-    Decision Tree using brute force to find the optimal solution,
-    optimized for better performance.
+    Decision Tree using brute force to find the optimal solution.
+    Creates a tree structure using `Node` instances and calculates the error rate.
     """
     n_features = data.shape[1]  # Number of features
-    thresholds = [np.mean(data[:, feature]) for feature in range(n_features)]  # Use mean for thresholds
-    best_tree = None
-    lowest_error = float("inf")  # Initialize the lowest error
 
-    def compute_error_and_split(data, labels, feature, threshold):
+    def build_tree(data, labels, depth):
+        # עצירה אם אין נתונים או אם הגודל קטן מידי
+        if len(data) == 0 or depth == max_depth or len(set(labels)) == 1:
+            prediction = Counter(labels).most_common(1)[0][0]  # תחזית הרוב
+            return Node(prediction=prediction)
+
+        best_split = None
+        lowest_error = float("inf")
+        best_feature, best_threshold = None, None
+        best_left, best_right = None, None
+
+        for feature in range(n_features):
+            thresholds = np.unique(data[:, feature])  # כל הערכים הייחודים עבור הפיצול
+            for threshold in thresholds:
+                # פיצול הנתונים
+                (left_data, left_labels), (right_data, right_labels) = split_data(data, labels, feature, threshold)
+                if len(left_labels) == 0 or len(right_labels) == 0:
+                    continue  # אם צד כלשהו ריק, דלג (אין טעם לפיצול כזה)
+
+                # חישוב הטעויות
+                left_error = error_rate(left_labels)
+                right_error = error_rate(right_labels)
+                weighted_error = (len(left_labels) * left_error + len(right_labels) * right_error) / len(labels)
+
+                # שמירת הפיצול הטוב ביותר
+                if weighted_error < lowest_error:
+                    lowest_error = weighted_error
+                    best_feature = feature
+                    best_threshold = threshold
+                    best_left = (left_data, left_labels)
+                    best_right = (right_data, right_labels)
+
+        # אם לא מצאנו פיצול ניתן להחזיק תחזית על הקבוצה הנוכחית כעלה
+        if best_split is None:
+            prediction = Counter(labels).most_common(1)[0][0]
+            return Node(prediction=prediction)
+
+        # בניית צומת חדשה
+        root = Node()
+        root.feature = best_feature
+        root.threshold = best_threshold
+        root.left = build_tree(*best_left, depth + 1)
+        root.right = build_tree(*best_right, depth + 1)
+        return root
+
+    tree = build_tree(data, labels, 0)
+
+    # מחשבים את שיעור הטעויות
+    def calculate_tree_error(tree, data, labels):
         """
-        Compute error and perform a split based on the feature and threshold.
-        Returns the weighted error and left/right splits.
+        פונקציה פנימית לחישוב שיעור הטעויות של העץ.
         """
-        left_mask = data[:, feature] <= threshold
-        right_mask = ~left_mask
-        left_labels = labels[left_mask]
-        right_labels = labels[right_mask]
-        left_error = error_rate(left_labels)
-        right_error = error_rate(right_labels)
-        # Weighted error based on the size of the splits
-        weighted_error = (len(left_labels) * left_error + len(right_labels) * right_error) / len(labels)
-        return weighted_error, (data[left_mask], left_labels), (data[right_mask], right_labels)
 
-    # Generate all combinations of features for splits up to max depth
-    for feature_combination in product(range(n_features), repeat=max_depth):
-        nodes = [(data, labels)]  # Start with the root node
-        total_error = 0
+        def predict(node, sample):
+            if node.prediction is not None:
+                return node.prediction
+            if sample[node.feature] <= node.threshold:
+                return predict(node.left, sample)
+            return predict(node.right, sample)
 
-        for depth, feature in enumerate(feature_combination):
-            current_threshold = thresholds[feature]  # Use the precomputed threshold for this feature
-            new_nodes = []
-            level_error = 0
+        predictions = [predict(tree, sample) for sample in data]
+        errors = sum(1 for true_label, pred_label in zip(labels, predictions) if true_label != pred_label)
+        return errors / len(labels)
 
-            for node_data, node_labels in nodes:
-                if len(set(node_labels)) <= 1:  # Stop splitting pure nodes
-                    new_nodes.append((node_data, node_labels))
-                    continue
+    brute_error = calculate_tree_error(tree, data, labels)
 
-                # Perform split and compute error
-                split_error, left, right = compute_error_and_split(node_data, node_labels, feature, current_threshold)
-                level_error += split_error
-                new_nodes.append(left)
-                new_nodes.append(right)
-
-            # Update total error for this level and move to the next
-            total_error += level_error
-            nodes = new_nodes
-
-        # Update the best tree if the current error is lower than the lowest error
-        if total_error < lowest_error:
-            lowest_error = total_error
-            best_tree = feature_combination
-
-    return best_tree, lowest_error
+    return tree, brute_error
 
 
 # Binary Entropy Decision Tree
@@ -165,24 +182,59 @@ def decision_tree_main():
 
     # Run the brute-force decision tree algorithm
     print("Running Brute-Force Decision Tree...")
-    brute_tree, brute_error = brute_force_decision_tree(data, labels, max_depth)
-    print("Brute Force - Best Tree:", brute_tree)
+    tree1, brute_error = brute_force_decision_tree(data, labels, max_depth)
+    print("Brute Force - Best Tree:", tree1)
     print("Brute Force - Error Rate:", brute_error)
 
     # Run the binary entropy decision tree algorithm
     print("\nRunning Binary Entropy Decision Tree...")
-    entropy_tree = binary_entropy_decision_tree(data, labels, max_depth)
+    tree2 = binary_entropy_decision_tree(data, labels, max_depth)
 
-    # Visualize the binary entropy decision tree (as an example)
-    print("Visualizing Binary Entropy Decision Tree...")
-    try:
-        visualize_tree_with_matplotlib(entropy_tree, filename="entropy_tree")
-        print("Binary Entropy Tree Visualization Saved as 'entropy_tree.png'")
-    except Exception as e:
-        print("Error visualizing tree with matplotlib.")
-        print(e)
+    # Debug tree structures
+    print("\nTree Structures:")
+
+    def debug_tree_structure(node, depth=0):
+        if node is None:
+            print(f"{'  ' * depth}Empty node")
+            return
+        print(f"{'  ' * depth}Node: Feature={node.feature}, Threshold={node.threshold}, Prediction={node.prediction}")
+        if node.left:
+            debug_tree_structure(node.left, depth + 1)
+        if node.right:
+            debug_tree_structure(node.right, depth + 1)
+
+    print("Tree 1 (Brute Force):")
+    debug_tree_structure(tree1)
+    print("\nTree 2 (Binary Entropy):")
+    debug_tree_structure(tree2)
+
+    # Calculate error rate for Binary Entropy Decision Tree
+    def calculate_tree_error(tree, data, labels):
+        """
+        Helper function to calculate error rate of a decision tree.
+        """
+
+        def predict(node, sample):
+            if node.prediction is not None:
+                return node.prediction
+            if sample[node.feature] <= node.threshold:
+                return predict(node.left, sample)
+            return predict(node.right, sample)
+
+        predictions = [predict(tree, sample) for sample in data]
+        errors = sum(1 for true_label, pred_label in zip(labels, predictions) if true_label != pred_label)
+        return errors / len(labels)
+
+    entropy_error = calculate_tree_error(tree2, data, labels)
+    print(f"Binary Entropy Decision Tree Error Rate: {entropy_error:.4f}")
+
+    # Visualize each tree and save them
+    print("\nVisualizing Decision Trees...")
+    visualize_tree_with_matplotlib(tree1, "brute_force_tree", "Brute Force Decision Tree", "#FFDAB9")  # Peach
+    visualize_tree_with_matplotlib(tree2, "binary_entropy_tree", "Binary Entropy Decision Tree",
+                                   "#B0E0E6")  # Light Blue
 
     # Summary and comparison of results
     print("\nSummary:")
     print(f"Brute-Force Decision Tree Error Rate: {brute_error}")
-    print(f"Binary Entropy Decision Tree Built Successfully (visualization saved to 'entropy_tree.png').")
+    print(f"Binary Entropy Decision Tree Error Rate: {entropy_error:.4f}")
