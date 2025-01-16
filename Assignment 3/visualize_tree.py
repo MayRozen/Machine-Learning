@@ -1,57 +1,64 @@
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
-import os
 
-
-def visualize_tree_with_matplotlib(tree, filename, title, color):
+def draw_node(ax, center, text, color):
     """
-    Visualize a decision tree using matplotlib.
-
-    Parameters:
-    tree (Node): The root of the decision tree.
-    filename (str): The filename for saving the visualization (without extension).
-    title (str): The title for the tree chart.
-    color (str): Background color of tree nodes.
+    Draw a node with the given text and color at the specified position.
     """
+    bbox_props = dict(boxstyle="round,pad=0.3", ec="black", fc=color, alpha=0.8)
+    ax.text(*center, text, ha="center", va="center", fontsize=10, bbox=bbox_props)
 
-    fig, ax = plt.subplots(figsize=(14, 8))  # Adjusted size for better visualization
-    ax.axis("off")  # Turn off axis lines
+def draw_tree(ax, node, x, y, x_offset, y_offset, level=0):
+    """
+    Recursively draw the decision tree.
+    """
+    if node is None:
+        return
 
-    # Recursive function to plot nodes and their connections
-    def plot_node(node, x, y, dx, level):
-        if node is None:
-            return
+    # Node text (feature, threshold, or prediction)
+    if node.prediction is not None:
+        text = f"Predict\n{node.prediction}"
+        color = "#FFCCCB"  # Light Coral
+    else:
+        feature_names = {0: 'width of sepal', 1: 'length of petal'}
+        text = f"{feature_names.get(node.feature, f'Feature {node.feature}')}\n<= {node.threshold}"
+        color = "#ADD8E6"  # Light Blue
 
-        # Create the node label to show its content
-        if node.prediction is not None:  # Leaf node
-            label = f"Predict: {node.prediction}"
-        else:  # Decision node
-            label = f"Feature {node.feature}\nThreshold {node.threshold:.2f}"
+    # Draw the current node
+    draw_node(ax, (x, y), text, color)
 
-        # Draw the node with text
-        ax.text(x, y, label, ha='center', va='center', fontsize=8,
-                bbox=dict(facecolor=color, edgecolor='black', boxstyle='round,pad=0.5'))
+    # Draw edges and recursively draw children
+    if node.left:
+        child_x = x - x_offset / (2 ** level)
+        child_y = y - y_offset
+        ax.plot([x, child_x], [y, child_y], "k-", lw=1.5)
+        draw_tree(ax, node.left, child_x, child_y, x_offset, y_offset, level + 1)
 
-        # Plot children if exist
-        next_y = y - 1.5  # Reduce y for the next level
-        if node.left:  # Left child node
-            ax.plot([x, x - dx], [y - 0.2, next_y + 0.2], lw=1, color='black')  # Connection line
-            plot_node(node.left, x - dx, next_y, dx / 2, level + 1)
+    if node.right:
+        child_x = x + x_offset / (2 ** level)
+        child_y = y - y_offset
+        ax.plot([x, child_x], [y, child_y], "k-", lw=1.5)
+        draw_tree(ax, node.right, child_x, child_y, x_offset, y_offset, level + 1)
 
-        if node.right:  # Right child node
-            ax.plot([x, x + dx], [y - 0.2, next_y + 0.2], lw=1, color='black')  # Connection line
-            plot_node(node.right, x + dx, next_y, dx / 2, level + 1)
+def visualize_tree_with_matplotlib(tree, filename, title, bg_color):
+    """
+    Visualize a decision tree and save it as an image.
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor(bg_color)
+    ax.axis("off")
 
-    # Start the plotting from the root node
-    plot_node(tree, x=0, y=0, dx=8, level=0)
+    # Initial parameters for tree drawing
+    x = 0.5  # X position of the root
+    y = 0.9  # Y position of the root
+    x_offset = 0.4  # Horizontal offset between nodes
+    y_offset = 0.15  # Vertical offset between levels
 
-    # Add title to the plot
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    # Draw the tree
+    draw_tree(ax, tree, x, y, x_offset, y_offset)
 
-    # Save the plot to a file
-    save_path = os.getcwd()
-    plt.savefig(f"{save_path}/{filename}.png", bbox_inches="tight")
-    print(f"Tree visualization saved as {filename}.png at {save_path}")
+    # Add title
+    ax.set_title(title, fontsize=16, fontweight="bold", color="black")
 
-    # Show the plot
+    # Save the visualization
+    plt.savefig(f"{filename}.png", bbox_inches="tight")
     plt.show()
