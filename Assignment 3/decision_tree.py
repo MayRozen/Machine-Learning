@@ -38,36 +38,37 @@ def error_rate(labels):
 
 def brute_force_decision_tree(data, labels, max_depth):
     """
-    Decision Tree using brute force to find the optimal solution.
-    Creates a tree structure using `Node` instances and calculates the error rate.
+    Decision Tree using brute-force to find the optimal solution.
+    Creates a tree structure using `Node` instances.
     """
     n_features = data.shape[1]  # Number of features
 
     def build_tree(data, labels, depth):
-        # עצירה אם אין נתונים או אם הגודל קטן מידי
+        # Stop if there is no data, max depth reached, or all labels are the same
         if len(data) == 0 or depth == max_depth or len(set(labels)) == 1:
-            prediction = Counter(labels).most_common(1)[0][0]  # תחזית הרוב
+            prediction = Counter(labels).most_common(1)[0][0]  # Majority prediction
             return Node(prediction=prediction)
 
-        best_split = None
-        lowest_error = float("inf")
-        best_feature, best_threshold = None, None
-        best_left, best_right = None, None
+        best_feature = None
+        best_threshold = None
+        best_left = None
+        best_right = None
+        lowest_error = float("inf")  # Start with a very large error to minimize
 
         for feature in range(n_features):
-            thresholds = np.unique(data[:, feature])  # כל הערכים הייחודים עבור הפיצול
+            thresholds = np.unique(data[:, feature])  # All unique values for the split
             for threshold in thresholds:
-                # פיצול הנתונים
+                # Split data into left and right based on the threshold
                 (left_data, left_labels), (right_data, right_labels) = split_data(data, labels, feature, threshold)
                 if len(left_labels) == 0 or len(right_labels) == 0:
-                    continue  # אם צד כלשהו ריק, דלג (אין טעם לפיצול כזה)
+                    continue  # Skip invalid splits (division that results in empty groups)
 
-                # חישוב הטעויות
+                # Calculate error for the current split
                 left_error = error_rate(left_labels)
                 right_error = error_rate(right_labels)
                 weighted_error = (len(left_labels) * left_error + len(right_labels) * right_error) / len(labels)
 
-                # שמירת הפיצול הטוב ביותר
+                # Update the best split
                 if weighted_error < lowest_error:
                     lowest_error = weighted_error
                     best_feature = feature
@@ -75,12 +76,12 @@ def brute_force_decision_tree(data, labels, max_depth):
                     best_left = (left_data, left_labels)
                     best_right = (right_data, right_labels)
 
-        # אם לא מצאנו פיצול ניתן להחזיק תחזית על הקבוצה הנוכחית כעלה
-        if best_split is None:
+        # If no split found, return a leaf node with majority prediction
+        if best_feature is None:
             prediction = Counter(labels).most_common(1)[0][0]
             return Node(prediction=prediction)
 
-        # בניית צומת חדשה
+        # Create a new node and recursively build subtrees
         root = Node()
         root.feature = best_feature
         root.threshold = best_threshold
@@ -88,16 +89,17 @@ def brute_force_decision_tree(data, labels, max_depth):
         root.right = build_tree(*best_right, depth + 1)
         return root
 
+    # Build the tree starting from depth 0
     tree = build_tree(data, labels, 0)
 
-    # מחשבים את שיעור הטעויות
+    # Calculate the error rate for the built tree
     def calculate_tree_error(tree, data, labels):
         """
-        פונקציה פנימית לחישוב שיעור הטעויות של העץ.
+        Helper function to calculate the error rate of a decision tree.
         """
 
         def predict(node, sample):
-            if node.prediction is not None:
+            if node.prediction is not None:  # If it’s a leaf node, return the prediction
                 return node.prediction
             if sample[node.feature] <= node.threshold:
                 return predict(node.left, sample)
@@ -110,6 +112,7 @@ def brute_force_decision_tree(data, labels, max_depth):
     brute_error = calculate_tree_error(tree, data, labels)
 
     return tree, brute_error
+
 
 
 # Binary Entropy Decision Tree

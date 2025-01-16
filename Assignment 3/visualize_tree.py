@@ -16,7 +16,10 @@ def draw_tree(ax, node, x, y, x_offset, y_offset, level=0):
 
     # Node text (feature, threshold, or prediction)
     if node.prediction is not None:
-        text = f"Predict\n{node.prediction}"
+        # Map the prediction (1 or 2) to the actual class names
+        label_map = {1: "Iris-Versicolor", 2: "Iris-Virginica"}
+        prediction_text = label_map.get(node.prediction, f"Unknown ({node.prediction})")
+        text = f"Predict\n{prediction_text}"
         color = "#FFCCCB"  # Light Coral
     else:
         feature_names = {0: 'width of sepal', 1: 'length of petal'}
@@ -56,8 +59,8 @@ def visualize_tree_with_matplotlib(tree, filename, title, bg_color):
     # Draw the tree
     draw_tree(ax, tree, x, y, x_offset, y_offset)
 
-    # Add title
-    ax.set_title(title, fontsize=16, fontweight="bold", color="black")
+    # Add title with handwriting style
+    ax.set_title(title, fontsize=16, fontweight="bold", color="black", fontname="Comic Sans MS")  # Change the font!
 
     # Save the visualization
     plt.savefig(f"{filename}.png", bbox_inches="tight")

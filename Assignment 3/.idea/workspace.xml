@@ -9,7 +9,7 @@
       <change beforePath="$PROJECT_DIR$/average_results.csv" beforeDir="false" afterPath="$PROJECT_DIR$/average_results.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/binary_entropy_tree.png" beforeDir="false" afterPath="$PROJECT_DIR$/binary_entropy_tree.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/brute_force_tree.png" beforeDir="false" afterPath="$PROJECT_DIR$/brute_force_tree.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/decision_trees.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/decision_tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/decision_tree.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/results_graph.png" beforeDir="false" afterPath="$PROJECT_DIR$/results_graph.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/results_table.png" beforeDir="false" afterPath="$PROJECT_DIR$/results_table.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visualize_tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualize_tree.py" afterDir="false" />
