@@ -78,8 +78,8 @@ def main():
 
     # Initialize models
     models = {
-        'KNN': KNNClassifier(),  # KNN model
-        # 'SVM': SVMClassifier(),  # SVM model
+        # 'KNN': KNNClassifier(),  # KNN model
+        'SVM': SVMClassifier(),  # SVM model
     }
 
     results = {}
