@@ -79,7 +79,7 @@ def main():
     # Initialize models
     models = {
         'KNN': KNNClassifier(),  # KNN model
-        'SVM': SVMClassifier(),  # SVM model
+        # 'SVM': SVMClassifier(),  # SVM model
     }
 
     results = {}
@@ -88,8 +88,7 @@ def main():
     for name, model in models.items():
         print(f"Training {name} model...")
         model.train(X_train, y_train)
-        results[name] = model.evaluate(X_test, y_test)
-        print(f"{name} Results:\n{results[name]}\n")
+        model.evaluate(X_test, y_test)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import librosa
 import librosa.display
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.metrics import pairwise_distances
 from collections import Counter
 
@@ -51,7 +51,7 @@ class KNNClassifier:
         X_test = scaler.transform(X_test)
         return X_train, X_test, y_train, y_test
 
-    def fit(self, X_train, y_train):
+    def train(self, X_train, y_train):
         """
         Store the training data and labels
 
@@ -73,8 +73,7 @@ class KNNClassifier:
             np.array: Predicted labels
         """
         predictions = []
-
-        distances = pairwise_distances(X_test, self.X_train)  # יעיל יותר מחישוב נורמה ידני
+        distances = pairwise_distances(X_test, self.X_train)  # Efficient distance computation
 
         for i in range(X_test.shape[0]):
             nearest_neighbors = np.argsort(distances[i])[:self.n_neighbors]
@@ -83,24 +82,28 @@ class KNNClassifier:
             # Majority voting with tie-breaking
             label_counts = Counter(neighbor_labels)
             predicted_label = max(label_counts.keys(), key=lambda label: (
-            label_counts[label], -np.mean(distances[i, nearest_neighbors][neighbor_labels == label])))
+                label_counts[label], -np.mean(distances[i, nearest_neighbors][neighbor_labels == label])
+            ))
             predictions.append(predicted_label)
 
         return np.array(predictions)
 
     def evaluate(self, X_test, y_test):
-        """
-        Evaluate model performance
-
-        Args:
-            X_test (np.array): Test features
-            y_test (np.array): True labels
-
-        Returns:
-            dict: Classification metrics
-        """
         y_pred = self.predict(X_test)
-        return {
-            'classification_report': classification_report(y_test, y_pred),
-            'confusion_matrix': confusion_matrix(y_test, y_pred)
-        }
+
+        # Calculate accuracy
+        accuracy = accuracy_score(y_test, y_pred)
+
+        # Classification Report
+        class_report = classification_report(y_test, y_pred)
+
+        # Confusion Matrix
+        conf_matrix = confusion_matrix(y_test, y_pred)
+
+        # Print results
+        print(f"Overall Accuracy: {accuracy:.2f}")
+        print("Classification Report:")
+        print(class_report)
+        print("Confusion Matrix:")
+        print(conf_matrix)
+        print("\n" + "-" * 50 + "\n")
