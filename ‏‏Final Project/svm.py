@@ -3,6 +3,7 @@ import librosa
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 
 class SVMClassifier:
@@ -164,3 +165,18 @@ class SVMClassifier:
         accuracy = accuracy_score(y_test, predictions)  # Calculate accuracy
         print(f"Model Accuracy on Test Data: {accuracy * 100:.2f}%")  # Print accuracy in percentage
         return accuracy
+
+# Hyperparameter tuning using GridSearchCV
+def tune_hyperparameters(X_train, y_train):
+    """
+    Tune hyperparameters (C and gamma) using GridSearchCV for better performance
+    """
+    param_grid = {
+        'C': [0.1, 1, 10],
+        'gamma': [0.01, 0.1, 1],
+        'kernel': ['rbf']  # You can also include 'linear' kernel if you want to test both
+    }
+    grid_search = GridSearchCV(SVMClassifier(), param_grid, cv=5)
+    grid_search.fit(X_train, y_train)
+    print(f"Best Parameters: {grid_search.best_params_}")
+    return grid_search.best_estimator_
