@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from knn import  KNNClassifier
 from svm import  SVMClassifier
+from Clustering import ClusteringClassifier
 
 
 # Audio Preprocessor Class
@@ -79,7 +80,8 @@ def main():
     # Initialize models
     models = {
         # 'KNN': KNNClassifier(),  # KNN model
-        'SVM': SVMClassifier(),  # SVM model
+        # 'SVM': SVMClassifier(),  # SVM model
+        'Clustering': ClusteringClassifier(),  # Clustering model
     }
 
     results = {}
@@ -87,8 +89,15 @@ def main():
     # Train and evaluate classification models
     for name, model in models.items():
         print(f"Training {name} model...")
-        model.train(X_train, y_train)
-        model.evaluate(X_test, y_test)
+
+        if name == 'Clustering':
+            # Clustering model only needs X_train
+            model.train(X_train)
+            model.evaluate_clustering(X_train, X_test)  # Pass both X_train and X_test
+        else:
+            # Other models (like KNN, SVM) need both X_train and y_train
+            model.train(X_train, y_train)
+            model.evaluate(X_test, y_test)
 
 
 if __name__ == '__main__':
