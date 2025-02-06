@@ -81,7 +81,8 @@ def main():
     models = {
         # 'KNN': KNNClassifier(),  # KNN model
         # 'SVM': SVMClassifier(),  # SVM model
-        'Clustering': ClusteringClassifier(),  # Clustering model
+         'Clustering': ClusteringClassifier(),  # Clustering model
+        # 'LinearRegression': LinearRegressionClassifier(),  # Clustering model
     }
 
     results = {}
