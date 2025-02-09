@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
 
-
 class LinearRegressionClassifier:
     def __init__(self):
         """Initialize Linear Regression model"""
@@ -58,13 +57,21 @@ class LinearRegressionClassifier:
         self.y_train = y_train
 
         # Add bias term to the features (X_train)
-        X_train = np.c_[np.ones((X_train.shape[0], 1)), X_train]
+        X_train = np.c_[np.ones((X_train.shape[0], 1)), X_train]  # Add a column of 1s for the bias term
 
         # Compute the weights using the Normal Equation
         # weights = (X^T * X)^-1 * X^T * y
         self.weights = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_train)
+
+        # Split weights into bias and coefficients
         self.bias = self.weights[0]  # bias term is the first element of weights
         self.weights = self.weights[1:]  # remaining weights are the coefficients
+
+        # Print out the cost function value during training for monitoring
+        print("Training LinearRegression model...")
+        y_pred = self.predict(X_train)
+        mse = mean_squared_error(y_train, y_pred)
+        print(f"Initial training MSE: {mse:.2f}")
 
     def predict(self, X_test):
         """
@@ -76,8 +83,15 @@ class LinearRegressionClassifier:
         Returns:
             np.array: Predicted values
         """
+        # Ensure that X_test has the same number of columns as X_train
         X_test = np.c_[np.ones((X_test.shape[0], 1)), X_test]  # Add bias term to the features
-        return X_test.dot(np.r_[self.bias, self.weights])  # Linear prediction
+
+        if X_test.shape[1] != len(self.weights) + 1:
+            raise ValueError(f"X_test has incompatible shape: expected {len(self.weights) + 1} columns, got {X_test.shape[1]}")
+
+        # Perform prediction
+        y_pred = X_test.dot(np.r_[self.bias, self.weights])  # Linear prediction using bias and weights
+        return y_pred
 
     def evaluate(self, X_test, y_test):
         """

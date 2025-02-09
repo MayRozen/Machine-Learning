@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from knn import  KNNClassifier
 from svm import  SVMClassifier
 from Clustering import ClusteringClassifier
+from Linear_Regression import LinearRegressionClassifier
 
 
 # Audio Preprocessor Class
@@ -81,8 +82,8 @@ def main():
     models = {
         # 'KNN': KNNClassifier(),  # KNN model
         # 'SVM': SVMClassifier(),  # SVM model
-         'Clustering': ClusteringClassifier(),  # Clustering model
-        # 'LinearRegression': LinearRegressionClassifier(),  # Clustering model
+        #  'Clustering': ClusteringClassifier(),  # Clustering model
+         'LinearRegression': LinearRegressionClassifier(),  # Clustering model
     }
 
     results = {}
