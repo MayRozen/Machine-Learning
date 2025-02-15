@@ -97,9 +97,15 @@ def main():
             model.train(X_train)
             model.evaluate_clustering(X_train, X_test)  # Pass both X_train and X_test
         else:
-            # Other models (like KNN, SVM) need both X_train and y_train
-            model.train(X_train, y_train)
-            model.evaluate(X_test, y_test)
+            if name == 'LinearRegression':
+                categories = ["air_conditioner", "car_horn", "children_playing", "dog_bark", "drilling",
+                              "engine_idling", "gun_shot", "jackhammer", "siren", "street_music"]
+                model.train(X_train, y_train)
+                model.evaluate(X_test, y_test, categories)
+            else:
+                # Other models (like KNN, SVM) need both X_train and y_train
+                model.train(X_train, y_train)
+                model.evaluate(X_test, y_test)
 
 
 if __name__ == '__main__':
