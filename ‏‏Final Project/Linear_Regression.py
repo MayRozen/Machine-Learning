@@ -4,95 +4,93 @@ import librosa.display
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.linear_model import LinearRegression
-from sklearn.multioutput import MultiOutputRegressor
 
-class LinearRegressionClassifier:
+class LinearRegressionDB:
     def __init__(self):
-        self.model = MultiOutputRegressor(LinearRegression())
-        self.scaler = StandardScaler()
+        """ Initialize the model and scalers """
+        self.scaler = StandardScaler()  # Standard scaler for features
+        self.y_scaler = StandardScaler()  # Standard scaler for target values (dB)
+        self.w = None  # Weight vector
+        self.b = None  # Bias term
 
     def extract_features(self, audio_path):
-        """ Extracts audio features: RMS energy, spectral centroid, and max frequency """
+        """ Extract key features from an audio file: Root Mean Square (RMS) energy """
         y, sr = librosa.load(audio_path, sr=None)
 
-        # Compute RMS energy (loudness)
+        # Compute RMS energy (average loudness)
         rms = librosa.feature.rms(y=y).flatten()
 
-        # Compute spectral centroid (weighted mean frequency)
-        spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr).flatten()
-
-        # Compute max frequency using spectral rolloff (90% energy threshold)
-        spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr, roll_percent=0.90).flatten()
-
-        # Aggregate features: use mean and max for stability
-        features = np.array([
-            np.mean(rms), np.max(rms),
-            np.mean(spectral_centroid), np.max(spectral_centroid),
-            np.mean(spectral_rolloff), np.max(spectral_rolloff)
-        ])
-        return features
+        # Use the mean RMS value as a stable metric
+        mean_rms = np.mean(rms)
+        return np.array([mean_rms]).reshape(1, -1), y, sr, rms  # Return extra values for visualization
 
     def train(self, X_train, y_train):
-        """ Fits a multi-output linear regression model on the training data """
-        X_train_scaled = self.scaler.fit_transform(X_train)
+        """ Train the model on loudness levels """
+        X_train_scaled = self.scaler.fit_transform(X_train)  # Scale input features
+        y_train_scaled = self.y_scaler.fit_transform(y_train.reshape(-1, 1))  # Scale target values
 
-        # Make sure y_train has at least two dimensions
-        if len(y_train.shape) == 1:
-            y_train = y_train.reshape(-1, 1)
+        # Add a bias column to the feature matrix (for the intercept term)
+        X_train_scaled_bias = np.c_[np.ones(X_train_scaled.shape[0]), X_train_scaled]
 
-        self.model.fit(X_train_scaled, y_train)
+        # Calculate weights using the Normal Equation: (X^T X)^-1 X^T y
+        X_transpose = X_train_scaled_bias.T
+        self.w = np.linalg.inv(X_transpose.dot(X_train_scaled_bias)).dot(X_transpose).dot(y_train_scaled)
+
+        # The first element of w corresponds to the bias term (intercept)
+        self.b = self.w[0]
+        self.w = self.w[1:]  # Remove the bias term from w
 
     def predict(self, X_test):
-        """ Predicts continuous values for new audio samples """
-        X_test_scaled = self.scaler.transform(X_test)
-        return self.model.predict(X_test_scaled)
+        """ Predict the target values from input features """
+        X_test_scaled = self.scaler.transform(X_test)  # Scale the test data
 
-    def evaluate(self, X_test, y_test, categories):
-        """ Evaluates the regression model performance for each category """
-        y_pred = self.predict(X_test)
+        # Add a column of ones to represent the bias term (intercept)
+        X_test_scaled_bias = np.c_[
+            np.ones(X_test_scaled.shape[0]), X_test_scaled]  # Add bias (intercept) as the first column
 
-        # Debugging prints
-        print("DEBUG: y_test shape before reshape:", y_test.shape)
-        print("DEBUG: y_pred shape:", y_pred.shape)
-        print("DEBUG: Categories:", categories)
+        # Concatenate bias and weights, ensuring correct dimensionality for dot product
+        weights_with_bias = np.concatenate(([self.b], self.w))  # Combine bias and weights in the correct order
 
-        # Ensure y_test is 2D
-        if len(y_test.shape) == 1:
-            y_test = y_test.reshape(-1, 1)
-            print("DEBUG: Reshaped y_test to:", y_test.shape)
+        # Calculate predictions (dot product with weights and bias)
+        return X_test_scaled_bias.dot(weights_with_bias)  # Dot product to calculate predictions
 
-        # Single-output case
-        if y_test.shape[1] == 1:
-            mse = mean_squared_error(y_test, y_pred)
-            r2 = r2_score(y_test, y_pred)
-            print(f"[{categories[0]}] MSE: {mse:.4f}, R² Score: {r2:.4f}")
+    def evaluate(self, X_test, y_test):
+        """ Evaluate model performance using MSE and R^2 score """
+        predicted_values = self.predict(X_test)
+        predicted_values = self.y_scaler.inverse_transform(predicted_values.reshape(-1, 1))  # Inverse transform
+
+        # Calculate and print evaluation metrics
+        mse = mean_squared_error(y_test, predicted_values)
+        r2 = r2_score(y_test, predicted_values)
+        print(f"Mean Squared Error: {mse}")
+        print(f"R^2 Score: {r2}")
+
+        self.check_noise_regulation(predicted_values, day=True)
+        return mse, r2
+
+    def check_noise_regulation(self, predicted_dB, day=True):
+        """ Check if the predicted noise level exceeds legal limits in Israel
+            Daytime: 55-65 dB
+            Nighttime: 45-55 dB
+        """
+        legal_limit = (55, 65) if day else (45, 55)
+
+        # If predicted_dB is an array, iterate over each value
+        if isinstance(predicted_dB, np.ndarray):
+            for predicted in predicted_dB:
+                self._check_single_noise_level(predicted, legal_limit)
         else:
-            for i, category in enumerate(categories):
-                mse = mean_squared_error(y_test[:, i], y_pred[:, i])
-                r2 = r2_score(y_test[:, i], y_pred[:, i])
-                print(f"[{category}] MSE: {mse:.4f}, R² Score: {r2:.4f}")
+            # Handle case where predicted_dB is a single value
+            self._check_single_noise_level(predicted_dB, legal_limit)
 
-        self.plot_results(y_test, y_pred, categories)
+    def _check_single_noise_level(self, predicted, legal_limit):
+        """ Helper function to check a single noise level """
+        # Ensure predicted is a scalar (e.g., float), not an array
+        predicted = predicted.item() if isinstance(predicted, np.ndarray) else predicted
 
-    def plot_results(self, y_test, y_pred, categories):
-        """ Plots true vs predicted values for each category """
-
-        # Ensure y_test is 2D
-        if len(y_test.shape) == 1:
-            y_test = y_test.reshape(-1, 1)
-            y_pred = y_pred.reshape(-1, 1)
-
-        fig, axes = plt.subplots(1, max(1, y_test.shape[1]), figsize=(5 * y_test.shape[1], 5))
-        if y_test.shape[1] == 1:
-            axes = [axes]  # Ensure indexing works for single-output
-
-        for i, category in enumerate(categories[:y_test.shape[1]]):  # Ensure valid indexing
-            axes[i].scatter(y_test[:, i], y_pred[:, i], alpha=0.5, edgecolors='black')
-            axes[i].plot([min(y_test[:, i]), max(y_test[:, i])], [min(y_test[:, i]), max(y_test[:, i])], 'r--')
-            axes[i].set_title(category)
-            axes[i].set_xlabel("True")
-            axes[i].set_ylabel("Predicted")
-
-        plt.tight_layout()
-        plt.show()
+        if predicted < legal_limit[0]:
+            print(f"Noise level is acceptable ({predicted:.2f} dB).")
+        elif predicted > legal_limit[1]:
+            print(f"Noise level EXCEEDS the legal limit! ({predicted:.2f} dB)")
+        else:
+            print(f"Noise level is within the legal range ({predicted:.2f} dB).")

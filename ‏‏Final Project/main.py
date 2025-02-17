@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from knn import  KNNClassifier
 from svm import  SVMClassifier
 from Clustering import ClusteringClassifier
-from Linear_Regression import LinearRegressionClassifier
+from Linear_Regression import LinearRegressionDB
 
 
 # Audio Preprocessor Class
@@ -83,7 +83,7 @@ def main():
         # 'KNN': KNNClassifier(),  # KNN model
         # 'SVM': SVMClassifier(),  # SVM model
         #  'Clustering': ClusteringClassifier(),  # Clustering model
-         'LinearRegression': LinearRegressionClassifier(),  # Clustering model
+         'LinearRegression': LinearRegressionDB(),  # Clustering model
     }
 
     results = {}
@@ -98,10 +98,9 @@ def main():
             model.evaluate_clustering(X_train, X_test)  # Pass both X_train and X_test
         else:
             if name == 'LinearRegression':
-                categories = ["air_conditioner", "car_horn", "children_playing", "dog_bark", "drilling",
-                              "engine_idling", "gun_shot", "jackhammer", "siren", "street_music"]
-                model.train(X_train, y_train)
-                model.evaluate(X_test, y_test, categories)
+                model.train(X_train, y_train)  # Train model on training data
+                mse, r2 = model.evaluate(X_test, y_test)  # Evaluate model on test data
+                results[name] = {"MSE": mse, "R^2": r2}
             else:
                 # Other models (like KNN, SVM) need both X_train and y_train
                 model.train(X_train, y_train)
