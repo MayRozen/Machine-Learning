@@ -101,6 +101,7 @@ def main():
                 model.train(X_train, y_train)  # Train model on training data
                 mse, r2 = model.evaluate(X_test, y_test)  # Evaluate model on test data
                 results[name] = {"MSE": mse, "R^2": r2}
+                model.visualize_predictions(X_test, y_test)  # This will display the visualization
             else:
                 # Other models (like KNN, SVM) need both X_train and y_train
                 model.train(X_train, y_train)

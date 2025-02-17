@@ -4,6 +4,8 @@ import librosa.display
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.decomposition import PCA
+
 
 class LinearRegressionDB:
     def __init__(self):
@@ -94,3 +96,30 @@ class LinearRegressionDB:
             print(f"Noise level EXCEEDS the legal limit! ({predicted:.2f} dB)")
         else:
             print(f"Noise level is within the legal range ({predicted:.2f} dB).")
+
+    def visualize_predictions(self, X_test, y_test):
+        """ Visualize the predictions vs actual values """
+        predicted_values = self.predict(X_test)
+        predicted_values = self.y_scaler.inverse_transform(predicted_values.reshape(-1, 1))  # Inverse transform
+
+        # Reduce data to 2D using PCA for better visualization
+        pca = PCA(n_components=2)
+        X_test_2d = pca.fit_transform(X_test)
+
+        plt.figure(figsize=(8, 6))
+
+        # Scatter plot for actual vs predicted
+        plt.scatter(X_test_2d[:, 0], y_test, label="Actual Values", color='#7EC8E3', alpha=0.6, s=50)
+        plt.scatter(X_test_2d[:, 0], predicted_values, label="Predicted Values", color='#C3B1E1', alpha=0.6, s=50)
+
+        # Set the title and labels for axes
+        plt.title("Linear Regression: Predictions vs Actuals")
+        plt.xlabel("PCA Component 1")
+        plt.ylabel("Loudness (dB)")
+
+        # Add the legend to the plot
+        plt.legend()
+
+        # Save the figure with a specific filename, overwriting it each time
+        plt.savefig('Regression_Predictions.png', bbox_inches='tight')
+        plt.show()
