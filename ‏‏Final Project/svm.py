@@ -124,7 +124,7 @@ def tune_and_visualize_svm(X, y):
     }
 
     svm = SVC()  # Using sklearn's SVC for GridSearch
-    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=2, n_jobs=-1)
+    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=0, n_jobs=-1)  # Set verbose=0 to suppress output
     grid_search.fit(X_train, y_train)
 
     best_params = grid_search.best_params_
