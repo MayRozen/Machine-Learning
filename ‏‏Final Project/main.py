@@ -81,9 +81,9 @@ def main():
     # Initialize models
     models = {
         # 'KNN': KNNClassifier(),  # KNN model
-        # 'SVM': SVMClassifier(),  # SVM model
+         'SVM': SVMClassifier(),  # SVM model
         #  'Clustering': ClusteringClassifier(),  # Clustering model
-         'LinearRegression': LinearRegressionDB(),  # Clustering model
+        # 'LinearRegression': LinearRegressionDB(),  # Clustering model
     }
 
     results = {}
