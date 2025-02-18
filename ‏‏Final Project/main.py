@@ -8,6 +8,7 @@ from knn import  KNNClassifier
 from svm import  SVMClassifier
 from Clustering import ClusteringClassifier
 from Linear_Regression import LinearRegressionDB
+from AdaBoost import AdaBoost
 
 
 # Audio Preprocessor Class
@@ -80,10 +81,11 @@ def main():
 
     # Initialize models
     models = {
-        # 'KNN': KNNClassifier(),  # KNN model
-         'SVM': SVMClassifier(),  # SVM model
+        'KNN': KNNClassifier(),  # KNN model
+         #'SVM': SVMClassifier(),  # SVM model
         #  'Clustering': ClusteringClassifier(),  # Clustering model
         # 'LinearRegression': LinearRegressionDB(),  # Clustering model
+        'AdaBoost': AdaBoost(n_estimators=20, k=3),  # AdaBoost with KNN
     }
 
     results = {}

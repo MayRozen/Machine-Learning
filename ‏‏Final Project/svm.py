@@ -111,9 +111,20 @@ class SVMClassifier:
         return accuracy
 
 
-# Hyperparameter tuning and visualization with GridSearchCV
+# Hyperparameter tuning and visualization with GridSearchCVdef tune_and_visualize_svm(X, y):
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.decomposition import PCA
+import numpy as np
+import matplotlib.pyplot as plt
+
 def tune_and_visualize_svm(X, y):
     X_train, X_test, y_train, y_test = SVMClassifier().preprocess_data(X, y)
+
+    # Reduce dimensions to 2 for visualization
+    pca = PCA(n_components=2)
+    X_train_pca = pca.fit_transform(X_train)
+    X_test_pca = pca.transform(X_test)
 
     # Hyperparameter tuning using GridSearchCV
     param_grid = {
@@ -123,9 +134,9 @@ def tune_and_visualize_svm(X, y):
         'class_weight': [None, 'balanced']
     }
 
-    svm = SVC()  # Using sklearn's SVC for GridSearch
-    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=0, n_jobs=-1)  # Set verbose=0 to suppress output
-    grid_search.fit(X_train, y_train)
+    svm = SVC()
+    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=0, n_jobs=-1)
+    grid_search.fit(X_train_pca, y_train)
 
     best_params = grid_search.best_params_
     print(f"Best parameters found: {best_params}")
@@ -133,7 +144,7 @@ def tune_and_visualize_svm(X, y):
     best_svm = grid_search.best_estimator_
 
     # Evaluate the best model
-    predictions = best_svm.predict(X_test)
+    predictions = best_svm.predict(X_test_pca)
     accuracy = np.mean(predictions == y_test)
     print(f"Best SVM Model Accuracy: {accuracy * 100:.2f}%")
 
@@ -141,17 +152,13 @@ def tune_and_visualize_svm(X, y):
     support_vectors = best_svm.support_vectors_
 
     # Create grid for plotting decision boundary
-    xx, yy = np.meshgrid(np.linspace(X_train[:, 0].min() - 1, X_train[:, 0].max() + 1, 100),
-                         np.linspace(X_train[:, 1].min() - 1, X_train[:, 1].max() + 1, 100))
+    xx, yy = np.meshgrid(np.linspace(X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1, 100),
+                         np.linspace(X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1, 100))
 
     grid_points = np.c_[xx.ravel(), yy.ravel()]
 
-    # Compute decision function for each point in the grid using the RBF kernel
-    K_grid = best_svm.kernel(grid_points, support_vectors)  # Shape should be (10000, 157)
-
-    # Compute the decision boundary (sign of the decision function)
-    Z = np.dot(K_grid, best_svm.dual_coef_.T) - best_svm.intercept_
-    Z = np.sign(Z)  # Sign function to classify points as either side of the margin
+    # Compute decision function for each point in the grid
+    Z = best_svm.decision_function(grid_points)
     Z = Z.reshape(xx.shape)
 
     # Plot decision boundary and margins
@@ -159,18 +166,21 @@ def tune_and_visualize_svm(X, y):
     plt.contour(xx, yy, Z, levels=[-1, 0, 1], alpha=0.75, colors=['r', 'k', 'g'], linestyles=['--', '-', '--'])
 
     # Plot data points
-    plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, s=50, cmap='autumn', edgecolors='k')
+    plt.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=y_train, s=50, cmap='autumn', edgecolors='k')
 
     # Plot support vectors
     plt.scatter(support_vectors[:, 0], support_vectors[:, 1], s=100, facecolors='none', edgecolors='b',
                 linewidths=1.5)
 
     plt.title("SVM with RBF Kernel: Best Model Decision Boundary", fontsize=16)
-    plt.xlabel("Feature 1")
-    plt.ylabel("Feature 2")
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
 
     # Save the figure (overwrite existing one)
     plt.savefig("best_svm_decision_boundary.png", dpi=300)
     print("Plot saved as 'best_svm_decision_boundary.png'")
 
     plt.show()
+
+
+

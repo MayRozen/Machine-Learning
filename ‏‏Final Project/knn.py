@@ -63,14 +63,38 @@ class KNNClassifier:
 
     def plot_results(self, y_test, y_pred):
         plt.figure(figsize=(10, 6))
-        colors = ["#FF9999", "#66B2FF", "#99FF99", "#FFD700", "#FF69B4"]
+
+        colors = ["#FF9999", "#66B2FF", "#99FF99", "#FFD700", "#FF69B4", "#FF4500", "#32CD32", "#8A2BE2", "#00CED1",
+                  "#DC143C"]
         unique_labels = np.unique(y_test)
         color_map = {label: colors[i % len(colors)] for i, label in enumerate(unique_labels)}
 
+        class_names = {
+            0: "air_conditioner",
+            1: "car_horn",
+            2: "children_playing",
+            3: "dog_bark",
+            4: "drilling",
+            5: "engine_idling",
+            6: "gun_shot",
+            7: "jackhammer",
+            8: "siren",
+            9: "street_music"
+        }
+
+        added_labels = set()  # לשמור קלאסים שהוספנו ללג'נד
+
         for i in range(len(y_test)):
-            color = color_map[y_test[i]] if y_test[i] == y_pred[i] else "red"
-            plt.scatter(i, y_test[i], color=color, label=f"Class {y_test[i]}" if color != "red" else "Misclassified",
-                        edgecolors="black")
+            label = y_test[i]
+            color = color_map[label] if y_test[i] == y_pred[i] else "red"
+
+            # הוספת תווית ללג'נד רק פעם אחת
+            if label not in added_labels:
+                plt.scatter(i, y_test[i], color=color, label=class_names[label] if color != "red" else "Misclassified",
+                            edgecolors="black")
+                added_labels.add(label)
+            else:
+                plt.scatter(i, y_test[i], color=color, edgecolors="black")
 
         plt.title("KNN Classification Results", fontsize=16, fontweight="bold", fontname="Arial")
         plt.xlabel("Sample Index", fontsize=12)
@@ -78,3 +102,4 @@ class KNNClassifier:
         plt.legend(loc="upper right", fontsize=10)
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.show()
+
