@@ -4,7 +4,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.svm import SVC
 from sklearn.feature_selection import RFE
-from sklearn.metrics.pairwise import rbf_kernel
 
 
 class SVMClassifier:
@@ -113,79 +112,65 @@ class SVMClassifier:
 
 
 # Hyperparameter tuning and visualization with GridSearchCV
-
-from sklearn.decomposition import PCA
-from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics.pairwise import rbf_kernel
-
 def tune_and_visualize_svm(X, y):
-    # Preprocess data (train-test split)
     X_train, X_test, y_train, y_test = SVMClassifier().preprocess_data(X, y)
-
-    # Reduce the data to 2D using PCA (if necessary)
-    pca = PCA(n_components=2)
-    X_train_2d = pca.fit_transform(X_train)
-    X_test_2d = pca.transform(X_test)
 
     # Hyperparameter tuning using GridSearchCV
     param_grid = {
-        'C': [0.1, 1, 10],  # Regularization parameter
-        'gamma': [0.1, 0.5, 1.0],  # Kernel coefficient for RBF kernel
-        'kernel': ['rbf'],  # Radial basis function kernel
-        'class_weight': [None, 'balanced']  # Handle class imbalance
+        'C': [0.1, 1, 10],
+        'gamma': [0.1, 0.5, 1.0],
+        'kernel': ['rbf'],
+        'class_weight': [None, 'balanced']
     }
 
     svm = SVC()  # Using sklearn's SVC for GridSearch
-
-    # Perform grid search with 5-fold cross-validation
-    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=0, n_jobs=-1)
-    grid_search.fit(X_train_2d, y_train)
+    grid_search = GridSearchCV(svm, param_grid, cv=5, verbose=2, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
 
     best_params = grid_search.best_params_
     print(f"Best parameters found: {best_params}")
 
-    best_svm = grid_search.best_estimator_  # Best model found from grid search
+    best_svm = grid_search.best_estimator_
 
     # Evaluate the best model
-    predictions = best_svm.predict(X_test_2d)
-    accuracy = np.mean(predictions == y_test)  # Accuracy calculation
+    predictions = best_svm.predict(X_test)
+    accuracy = np.mean(predictions == y_test)
     print(f"Best SVM Model Accuracy: {accuracy * 100:.2f}%")
 
     # Visualization of decision boundary
-    support_vectors = best_svm.support_vectors_  # Get support vectors
+    support_vectors = best_svm.support_vectors_
 
-    # Create a grid for plotting the decision boundary
-    xx, yy = np.meshgrid(np.linspace(X_train_2d[:, 0].min() - 1, X_train_2d[:, 0].max() + 1, 100),
-                         np.linspace(X_train_2d[:, 1].min() - 1, X_train_2d[:, 1].max() + 1, 100))
+    # Create grid for plotting decision boundary
+    xx, yy = np.meshgrid(np.linspace(X_train[:, 0].min() - 1, X_train[:, 0].max() + 1, 100),
+                         np.linspace(X_train[:, 1].min() - 1, X_train[:, 1].max() + 1, 100))
 
-    grid_points = np.c_[xx.ravel(), yy.ravel()]  # Combine the grid points
+    grid_points = np.c_[xx.ravel(), yy.ravel()]
 
-    # Compute the RBF kernel for each grid point and support vector
-    K_grid = rbf_kernel(grid_points, support_vectors, gamma=best_svm.gamma)
+    # Compute decision function for each point in the grid using the RBF kernel
+    K_grid = best_svm.kernel(grid_points, support_vectors)  # Shape should be (10000, 157)
 
-    # Compute the decision function using the dual coefficients and intercept
+    # Compute the decision boundary (sign of the decision function)
     Z = np.dot(K_grid, best_svm.dual_coef_.T) - best_svm.intercept_
+    Z = np.sign(Z)  # Sign function to classify points as either side of the margin
+    Z = Z.reshape(xx.shape)
 
-    Z = np.sign(Z)  # Classify the points based on the sign of the decision function
-    Z = Z.reshape(xx.shape)  # Reshape to match grid shape for contour plotting
-
-    # Plot the decision boundary
+    # Plot decision boundary and margins
     plt.figure(figsize=(8, 6))
     plt.contour(xx, yy, Z, levels=[-1, 0, 1], alpha=0.75, colors=['r', 'k', 'g'], linestyles=['--', '-', '--'])
 
-    # Plot the training points
-    plt.scatter(X_train_2d[:, 0], X_train_2d[:, 1], c=y_train, s=50, cmap='autumn', edgecolors='k')
+    # Plot data points
+    plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, s=50, cmap='autumn', edgecolors='k')
 
-    # Plot support vectors with a distinct marker (larger and no fill)
-    plt.scatter(support_vectors[:, 0], support_vectors[:, 1], s=100, facecolors='none', edgecolors='b', linewidths=1.5)
+    # Plot support vectors
+    plt.scatter(support_vectors[:, 0], support_vectors[:, 1], s=100, facecolors='none', edgecolors='b',
+                linewidths=1.5)
 
-    # Title and labels
-    plt.title("SVM with RBF Kernel: Optimal Decision Boundary", fontsize=16)
+    plt.title("SVM with RBF Kernel: Best Model Decision Boundary", fontsize=16)
     plt.xlabel("Feature 1")
     plt.ylabel("Feature 2")
 
-    # Save and show the plot
+    # Save the figure (overwrite existing one)
     plt.savefig("best_svm_decision_boundary.png", dpi=300)
-    plt.show()
+    print("Plot saved as 'best_svm_decision_boundary.png'")
 
+    plt.show()
