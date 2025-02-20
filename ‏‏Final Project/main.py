@@ -81,11 +81,11 @@ def main():
 
     # Initialize models
     models = {
-        'KNN': KNNClassifier(),  # KNN model
-         #'SVM': SVMClassifier(),  # SVM model
+        #'KNN': KNNClassifier(),  # KNN model
+        'SVM': SVMClassifier(),  # SVM model
         #  'Clustering': ClusteringClassifier(),  # Clustering model
         # 'LinearRegression': LinearRegressionDB(),  # Clustering model
-        'AdaBoost': AdaBoost(n_estimators=20, k=3),  # AdaBoost with KNN
+        #'AdaBoost': AdaBoost(n_estimators=20, k=3),  # AdaBoost with KNN
     }
 
     results = {}
